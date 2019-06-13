@@ -13,14 +13,18 @@ import numpy as np
 import re
 
 
-####################################
-# Transport coefficient definitions
-####################################
+#####################################
+# Transport coefficient definitions #
+#####################################
 
 
 version='sims1'
 
-#if (version == "duke"):
+# Duke parametrization for shear and bulk
+# One option for shear, as used in Jonah Bernhard's thesis
+# Two options for bulk: 
+# (i) 'duke': max, width, peak position (J. Bernhard's thesis)
+# (ii) 'duke-jf': max, area, peak position (J-F tests)
 if (re.match("duke(-[a-z]+)?",version) is not None):
 
     shear_param_list={
@@ -76,7 +80,7 @@ if (re.match("duke(-[a-z]+)?",version) is not None):
 
             return res
 
-
+# Parametrization that JETSCAPE-SIMS is considering using
 if (version == "sims1"):
 
     shear_param_list={
