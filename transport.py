@@ -11,12 +11,13 @@ import matplotlib as mpl
 
 import numpy as np
 import re
+from eos import cs2_qcd_fct
 
+hbarc=0.1973
 
-#####################################
-# Transport coefficient definitions #
-#####################################
-
+#################################################
+####### eta/s(T) and zeta/s(T) definition #######
+#################################################
 
 version='sims1'
 
@@ -133,6 +134,28 @@ if (version == "sims1"):
         return res
 
 
+#############################################
+####### Shear & bulk relaxation times #######
+#############################################
+
+def bulk_relaxation_time(T_in_GeV, parameters):
+
+    T_in_fm=T_in_GeV/hbarc
+    
+    # 14th moments RTA - in MUSIC
+    return 1/(15.*np.power(1/3-cs2_qcd_fct(T_in_fm),2))*zeta_over_s(T_in_GeV, parameters)/T_in_fm
+
+
+def shear_relaxation_time(T_in_GeV, parameters):
+
+    T_in_fm=T_in_GeV/hbarc
+    
+    # 14th moments RTA - in MUSIC
+    return 5*eta_over_s(T_in_GeV,parameters)/T_in_fm
+
+
+
+
 ####################################
 # Widget to play with parameters
 ####################################
@@ -141,69 +164,89 @@ root = tk.Tk()
 root.wm_title("eta/s and zeta/s")
 
 # Canvas for plots
-fig = mpl.figure.Figure(figsize=(8, 4), dpi=100)
+fig = mpl.figure.Figure(figsize=(8, 8), dpi=100)
 canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
 #canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 canvas.get_tk_widget().grid(row=0,columnspan=2)
 
 # Need to track the id of plotted lines so that they can be deleted
-line_list=[None,None]
+line_list={
+'eta_over_s':None,
+'zeta_over_s':None,
+'tau_shear':None,
+'tau_bulk':None
+}
 
 # List of axes
-ax_list=[None,None]
+ax_list={
+'eta_over_s':None,
+'zeta_over_s':None,
+'tau_shear':None,
+'tau_bulk':None
+}
 
 # List of sliders
-sliders_list=[{},{}]
+sliders_list={
+'eta_over_s':{},
+'zeta_over_s':{},
+}
 
 # Function to update the plots when the sliders are varied
-def eta_slider_update(val):
-    slider_update("shear")
+def eta_over_s_slider_update(val):
+    slider_update("eta_over_s")
 
-def zeta_slider_update(val):
-    slider_update("bulk")
+def zeta_over_s_slider_update(val):
+    slider_update("zeta_over_s")
 
 #
-def slider_update(viscosity):
+def slider_update(gen_transport):
 
-    # 
-    if (viscosity == 'shear'):
-        tid=0
+    if (gen_transport == 'shear'):
         lparam_list=shear_param_list
-        transport_fct=eta_over_s
+        transport_fct_list={'eta_over_s':eta_over_s,'tau_shear':shear_relaxation_time }
     else:
-        tid=1
         lparam_list=bulk_param_list
-        transport_fct=zeta_over_s
+        transport_fct_list={'zeta_over_s':zeta_over_s,'tau_bulk':bulk_relaxation_time}
 
-    # Figure out which line to delete
-    if (line_list[tid]):
-        line_list[tid].remove()
 
-    parameters={ key: float(sliders_list[tid][key].get()) for key, values in lparam_list.items() }
+    for transport, transport_fct in transport_fct_list.items():
 
-    T_range = np.arange(0, .6, .001)
-    yaxis_res=[transport_fct(T,parameters) for T in T_range]
+        # Figure out which line to delete
+        if (line_list[transport]):
+            line_list[transport].remove()
 
-    lines, = ax_list[tid].plot(T_range, yaxis_res, 'b')
-    line_list[tid]=lines
-    canvas.draw()
+        sliders_key='eta_over_s' if gen_transport == 'shear' else 'zeta_over_s'
+
+        parameters={ key: float(sliders_list[sliders_key][key].get()) for key, values in lparam_list.items() }
+
+        T_range = np.arange(0.05, .6, .001)
+        yaxis_res=[transport_fct(T,parameters) for T in T_range]
+
+        lines, = ax_list[transport].plot(T_range, yaxis_res, 'b')
+        line_list[transport]=lines
+        canvas.draw()
 
 # Loop over the two transport coefficients
-transport_coeffs=['eta','zeta']
-for transport_coeff in transport_coeffs:
+transport_coeff_list=[
+('tau_shear',1,r'$\tau_\pi$'),
+('tau_bulk',2,r'$\tau_\Pi$'),
+('eta_over_s',3,r'$\eta/s$'),
+('zeta_over_s',4,r'$\zeta/s$')
+]
+for transport_coeff, pos, axis_label in transport_coeff_list:
 
-    transport_id=0 if transport_coeff == 'eta' else 1
-    tmp_ax=fig.add_subplot(1,2,transport_id+1)
-    ax_list[transport_id] =tmp_ax
+    #transport_id=0 if transport_coeff == 'eta_over_s' else 1
+    #tmp_ax=fig.add_subplot(2,2,transport_id+3)
+    tmp_ax=fig.add_subplot(2,2,pos)
+    ax_list[transport_coeff] =tmp_ax
 
-    axis_label=r'$\eta/s$' if transport_coeff == 'eta' else r'$\zeta/s$'
     tmp_ax.set_title(axis_label)
 
     tmp_ax.set_xlim(0.1,.6)
-    if (transport_coeff == 'eta'):
+    if (transport_coeff == 'eta_over_s'):
         y_low_lim=0.0
         y_high_lim=0.5
-    else:
+    elif (transport_coeff == 'zeta_over_s'):
         y_low_lim=0.0
         if (re.match("^duke-jf",version) is not None):
             y_high_lim=0.4
@@ -211,33 +254,38 @@ for transport_coeff in transport_coeffs:
             y_high_lim=0.4
         else:
             y_high_lim=0.15
+    else:
+        y_low_lim=0
+        y_high_lim=1
 
     tmp_ax.set_ylim(y_low_lim,y_high_lim)
 
 
-    if (transport_coeff == 'eta'):
+    if (transport_coeff in ['eta_over_s','tau_shear']):
         param_list=shear_param_list
-        slider_update_fct=eta_slider_update
+        slider_update_fct=lambda dummy: slider_update("shear")
         transport_fct=eta_over_s
-    else:
+    elif (transport_coeff in ['zeta_over_s','tau_bulk']):
         param_list=bulk_param_list
-        slider_update_fct=zeta_slider_update
+        slider_update_fct=lambda dummy: slider_update("bulk")
         transport_fct=zeta_over_s
 
   
     ###########
-    # Sliders
+    # Sliders #
     ###########
 
-    # Create all the sliders
-    for n, (param_name, (param_min, param_max)) in enumerate(param_list.items()):
-        tmp_scale = tk.Scale(orient='horizontal', from_=param_min, to=param_max, resolution=(param_max-param_min)/50., command=slider_update_fct, label=param_name, length=200)
-        sliders_list[transport_id][param_name]=tmp_scale
-        tmp_scale.grid(row=n+1,column=transport_id)
+    if (transport_coeff in ['eta_over_s','zeta_over_s']):
+        # Create all the sliders
+        for n, (param_name, (param_min, param_max)) in enumerate(param_list.items()):
+            tmp_scale = tk.Scale(orient='horizontal', from_=param_min, to=param_max, resolution=(param_max-param_min)/50., command=slider_update_fct, label=param_name, length=200)
+            sliders_list[transport_coeff][param_name]=tmp_scale
+            #tmp_scale.grid(row=n+1,column=transport_id)
+            tmp_scale.grid(row=n+1,column=0 if transport_coeff == 'eta_over_s' else 1)
 
-    # Set sliders to mean value
-    for param_name, (param_min, param_max) in param_list.items():
-        sliders_list[transport_id][param_name].set((param_min+param_max)/2.0)
+        # Set sliders to mean value
+        for param_name, (param_min, param_max) in param_list.items():
+            sliders_list[transport_coeff][param_name].set((param_min+param_max)/2.0)
 
 
 
@@ -247,7 +295,7 @@ for transport_coeff in transport_coeffs:
     show_prior_density=False
     if (show_prior_density):
 
-        # Here's the idea: histogram \eta/s(T) and plot its density
+        # Here's the idea: histogram \eta_over_s/s(T) and plot its density
 
         # temperature bins
         T_bins_edges = np.linspace(0.1, 0.6, 20)
