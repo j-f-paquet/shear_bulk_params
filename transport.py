@@ -240,66 +240,68 @@ for transport_coeff in transport_coeffs:
     ###################################################
     # Show prior given limits on the parameters
     ###################################################
+    show_prior_density=False
+    if (show_prior_density):
 
-    # Here's the idea: histogram \eta/s(T) and plot its density
+        # Here's the idea: histogram \eta/s(T) and plot its density
 
-    # temperature bins
-    T_bins_edges = np.linspace(0.1, 0.6, 20)
-    T_bins= (T_bins_edges[:-1] + T_bins_edges[1:]) / 2
-    T_bins_size=len(T_bins)
+        # temperature bins
+        T_bins_edges = np.linspace(0.1, 0.6, 20)
+        T_bins= (T_bins_edges[:-1] + T_bins_edges[1:]) / 2
+        T_bins_size=len(T_bins)
 
-    # transport bins
-    transport_bins_edges=np.linspace(y_low_lim,y_high_lim,20)
-    transport_bins= (transport_bins_edges[:-1] + transport_bins_edges[1:]) / 2
-    transport_bins_size=len(transport_bins)
+        # transport bins
+        transport_bins_edges=np.linspace(y_low_lim,y_high_lim,20)
+        transport_bins= (transport_bins_edges[:-1] + transport_bins_edges[1:]) / 2
+        transport_bins_size=len(transport_bins)
 
-    # sample transport's parameter space
-    samples_per_param=15
-    meshgrid_input={param_name: np.linspace(param_min,param_max,samples_per_param) for (param_name, (param_min, param_max)) in param_list.items()}
+        # sample transport's parameter space
+        samples_per_param=15
+        meshgrid_input={param_name: np.linspace(param_min,param_max,samples_per_param) for (param_name, (param_min, param_max)) in param_list.items()}
 
-    param_name_list=[ param_name for (param_name, (param_min, param_max)) in param_list.items() ]
-    number_of_params=len(param_name_list)
+        param_name_list=[ param_name for (param_name, (param_min, param_max)) in param_list.items() ]
+        number_of_params=len(param_name_list)
 
-    pre=[ meshgrid_input[name] for name  in param_name_list]
+        pre=[ meshgrid_input[name] for name  in param_name_list]
 
-    param_sample=np.meshgrid(*pre)
+        param_sample=np.meshgrid(*pre)
 
-    number_of_samples=np.power(samples_per_param,number_of_params)
+        number_of_samples=np.power(samples_per_param,number_of_params)
 
-    histo=np.zeros([T_bins_size,transport_bins_size])
-    unit=1./number_of_samples
-    #transport_for_histo=np.empty([T_array_size,number_of_samples])
-    index_tuple=tuple(samples_per_param for j in range(number_of_params))
-    for Ti, T in enumerate(T_bins): #range(T_bins_size):
-        #tmp_array=np.empty([number_of_samples])
-        for si in range(number_of_samples):
-           
-            # Convert sample iterator into a N-d index
-            indices=np.unravel_index(si, index_tuple)
-            tmp_dict=meshgrid_input={param_name: param_sample[n][indices] for n, (param_name, (param_min, param_max)) in enumerate(param_list.items())}
-            tmp_transport=transport_fct(T,tmp_dict)
+        histo=np.zeros([T_bins_size,transport_bins_size])
+        unit=1./number_of_samples
+        #transport_for_histo=np.empty([T_array_size,number_of_samples])
+        index_tuple=tuple(samples_per_param for j in range(number_of_params))
+        for Ti, T in enumerate(T_bins): #range(T_bins_size):
+            #tmp_array=np.empty([number_of_samples])
+            for si in range(number_of_samples):
+               
+                # Convert sample iterator into a N-d index
+                indices=np.unravel_index(si, index_tuple)
+                tmp_dict=meshgrid_input={param_name: param_sample[n][indices] for n, (param_name, (param_min, param_max)) in enumerate(param_list.items())}
+                tmp_transport=transport_fct(T,tmp_dict)
 
-            transport_index=np.digitize(tmp_transport,transport_bins_edges)-1
+                transport_index=np.digitize(tmp_transport,transport_bins_edges)-1
 
-            #if (T>.4):
-            #    print(tmp_transport,transport_bins_edges,transport_index)
+                #if (T>.4):
+                #    print(tmp_transport,transport_bins_edges,transport_index)
 
-            # If the transport falls outsize of our binning, ignore it
-            if (transport_index <0)or(transport_index>=transport_bins_size):
-                continue
+                # If the transport falls outsize of our binning, ignore it
+                if (transport_index <0)or(transport_index>=transport_bins_size):
+                    continue
 
-            histo[Ti][transport_index]+=unit
+                histo[Ti][transport_index]+=unit
 
-    cmap=mpl.cm.get_cmap("Purples")
-    norm=mpl.colors.Normalize(vmin=1e-50, vmax=0.15)
-    cmap.set_under(color='white')
-    # This produces a binned 2D plot
-    #tmp_ax.pcolormesh(T_bins_edges, transport_bins_edges, histo.T, cmap=cmap, vmin=1e-50, vmax=.25)
-    # This produces a smooth 2D plot
-    im = mpl.image.NonUniformImage(tmp_ax, interpolation='bilinear', cmap=cmap)
-    im.set_norm(norm)
-    im.set_data(T_bins, transport_bins, histo.T)
-    tmp_ax.images.append(im)
+        cmap=mpl.cm.get_cmap("Purples")
+        norm=mpl.colors.Normalize(vmin=1e-50, vmax=0.15)
+        cmap.set_under(color='white')
+        # This produces a binned 2D plot
+        #tmp_ax.pcolormesh(T_bins_edges, transport_bins_edges, histo.T, cmap=cmap, vmin=1e-50, vmax=.25)
+        # This produces a smooth 2D plot
+        im = mpl.image.NonUniformImage(tmp_ax, interpolation='bilinear', cmap=cmap)
+        im.set_norm(norm)
+        im.set_data(T_bins, transport_bins, histo.T)
+        tmp_ax.images.append(im)
 
 
 
