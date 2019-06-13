@@ -164,7 +164,7 @@ root = tk.Tk()
 root.wm_title("eta/s and zeta/s")
 
 # Canvas for plots
-fig = mpl.figure.Figure(figsize=(8, 8), dpi=100)
+fig = mpl.figure.Figure(figsize=(6, 6), dpi=100)
 canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
 #canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 canvas.get_tk_widget().grid(row=0,columnspan=2)
@@ -256,7 +256,7 @@ for transport_coeff, pos, axis_label in transport_coeff_list:
             y_high_lim=0.15
     else:
         y_low_lim=0
-        y_high_lim=1
+        y_high_lim=2
 
     tmp_ax.set_ylim(y_low_lim,y_high_lim)
 
