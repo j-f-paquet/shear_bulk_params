@@ -164,7 +164,7 @@ root = tk.Tk()
 root.wm_title("eta/s and zeta/s")
 
 # Canvas for plots
-fig = mpl.figure.Figure(figsize=(6, 6), dpi=100)
+fig = mpl.figure.Figure(figsize=(4, 4), dpi=100)
 canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
 #canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 canvas.get_tk_widget().grid(row=0,columnspan=2)
@@ -228,8 +228,8 @@ def slider_update(gen_transport):
 
 # Loop over the two transport coefficients
 transport_coeff_list=[
-('tau_shear',1,r'$\tau_\pi$'),
-('tau_bulk',2,r'$\tau_\Pi$'),
+('tau_shear',1,r'$\tau_\pi$ (fm)'),
+('tau_bulk',2,r'$\tau_\Pi$ (fm)'),
 ('eta_over_s',3,r'$\eta/s$'),
 ('zeta_over_s',4,r'$\zeta/s$')
 ]
@@ -238,9 +238,11 @@ for transport_coeff, pos, axis_label in transport_coeff_list:
     #transport_id=0 if transport_coeff == 'eta_over_s' else 1
     #tmp_ax=fig.add_subplot(2,2,transport_id+3)
     tmp_ax=fig.add_subplot(2,2,pos)
+    fig.tight_layout()
     ax_list[transport_coeff] =tmp_ax
 
     tmp_ax.set_title(axis_label)
+    tmp_ax.set_xlabel("T (GeV)")
 
     tmp_ax.set_xlim(0.1,.6)
     if (transport_coeff == 'eta_over_s'):
