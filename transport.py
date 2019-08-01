@@ -85,10 +85,10 @@ if (re.match("duke(-[a-z]+)?",version) is not None):
 if (version == "sims1"):
 
     shear_param_list={
-    "T_kink_in_GeV":[.15,.22],
-    "eta_over_s_at_kink":[.001,.25],
-    "low_T_slope_in_GeV":[-1,2],
-    "high_T_slope_in_GeV":[-1,1]
+    "T_kink_in_GeV":[.13,.3],
+    "eta_over_s_at_kink":[.001,.3],
+    "low_T_slope_in_GeV":[-3,1],
+    "high_T_slope_in_GeV":[-1,2]
     }
 
     def eta_over_s( T_in_GeV, parameters):
@@ -99,7 +99,7 @@ if (version == "sims1"):
         high_T_slope_in_GeV=parameters['high_T_slope_in_GeV']
 
         if (T_in_GeV<T_kink_in_GeV):
-            res= eta_over_s_at_kink + low_T_slope_in_GeV*(T_kink_in_GeV - T_in_GeV)
+            res= eta_over_s_at_kink + low_T_slope_in_GeV*(T_in_GeV - T_kink_in_GeV)
         else:
             res=eta_over_s_at_kink + high_T_slope_in_GeV*(T_in_GeV - T_kink_in_GeV)
 
