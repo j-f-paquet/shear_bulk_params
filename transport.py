@@ -113,7 +113,7 @@ if (version == "sims1"):
     "zeta_over_s_at_peak":[1e-5,0.3],
     "zeta_over_s_width_in_GeV":[0.01,0.15],
     "lambda":[-.8,0.8],
-    "c_Pi":[1.25,10.0],
+    "c_Pi":[2.,10.0],
     "q_exp":[0,2],
     }
 
