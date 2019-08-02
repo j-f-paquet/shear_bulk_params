@@ -154,7 +154,23 @@ def shear_relaxation_time(T_in_GeV, parameters):
     return 5*eta_over_s(T_in_GeV,parameters)/T_in_fm
 
 
+def bulk_relaxation_time_approx_causality_bound_in_fm(T_in_GeV, zeta_over_s_fct, cs2_fct):
 
+    zeta_over_s=zeta_over_s_fct(T_in_GeV)
+
+    T_in_fm=T_in_GeV/hbarc
+
+    cs2=cs2_fct(T_in_fm)
+
+    # tau_\Pi > \zeta/s(T)/T/(1-cs2)
+
+    return zeta_over_s/(T_in_fm*(1-cs2))
+
+
+# Same as bulk causality bound, except zeta/s -> eta/s
+def shear_relaxation_time_approx_causality_bound_in_fm(T_in_GeV, eta_over_s_fct, cs2_fct):
+
+    return bulk_relaxation_time_approx_causality_bound_in_fm(T_in_GeV, eta_over_s_fct, cs2_fct)
 
 ####################################
 # Widget to play with parameters
@@ -213,17 +229,29 @@ def slider_update(gen_transport):
 
         # Figure out which line to delete
         if (line_list[transport]):
-            line_list[transport].remove()
+            for n_line, dummy in enumerate(line_list[transport]):
+                line_list[transport][n_line].remove()
 
         sliders_key='eta_over_s' if gen_transport == 'shear' else 'zeta_over_s'
 
         parameters={ key: float(sliders_list[sliders_key][key].get()) for key, values in lparam_list.items() }
 
+        # Plot transport coefficient
         T_range = np.arange(0.05, .6, .001)
         yaxis_res=[transport_fct(T,parameters) for T in T_range]
 
         lines, = ax_list[transport].plot(T_range, yaxis_res, 'b')
-        line_list[transport]=lines
+        line_list[transport]=[lines]
+
+        # Plot causality bound
+        if ('tau_' in transport):
+            causality_bound_fct=shear_relaxation_time_approx_causality_bound_in_fm if gen_transport == 'shear' else bulk_relaxation_time_approx_causality_bound_in_fm
+            visc_fct=eta_over_s if gen_transport == 'shear' else zeta_over_s
+            yaxis_causality_res=[causality_bound_fct(T,lambda Tl: visc_fct(Tl,parameters), cs2_qcd_fct) for T in T_range]
+            lines2, = ax_list[transport].plot(T_range, yaxis_causality_res, 'r:')
+
+            line_list[transport].append(lines2)
+
         canvas.draw()
 
 # Loop over the two transport coefficients
@@ -258,7 +286,7 @@ for transport_coeff, pos, axis_label in transport_coeff_list:
             y_high_lim=0.15
     else:
         y_low_lim=0
-        y_high_lim=2
+        y_high_lim=5
 
     tmp_ax.set_ylim(y_low_lim,y_high_lim)
 
