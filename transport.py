@@ -88,7 +88,8 @@ if (version == "sims1"):
     "T_kink_in_GeV":[.13,.3],
     "eta_over_s_at_kink":[.001,.3],
     "low_T_slope_in_GeV":[-3,1],
-    "high_T_slope_in_GeV":[-1,2]
+    "high_T_slope_in_GeV":[-1,2],
+    "b_pi":[2,20],
     }
 
     def eta_over_s( T_in_GeV, parameters):
@@ -111,7 +112,9 @@ if (version == "sims1"):
     "T_peak_in_GeV":[0.13,.3],
     "zeta_over_s_at_peak":[1e-5,0.3],
     "zeta_area_root":[(1e-5)**.25,.5**.25],
-    "lambda":[-.8,0.8]
+    "lambda":[-.8,0.8],
+    "c_Pi":[1.25,10.0],
+    "q_exp":[1,2],
     }
 
     #\frac{\zeta}{s}(T)=\frac{1}{\pi\sigma_\zeta}\frac{A_{\zeta}}{1+\left(T-T_{\zeta,c}\right)^2\left[\sigma^2_{\zeta}\left(\lambda sign(T-T_{\zeta,c})+1\right)\right]^{-1}}
@@ -140,18 +143,23 @@ if (version == "sims1"):
 
 def bulk_relaxation_time(T_in_GeV, parameters):
 
+    c_Pi=parameters['c_Pi']
+    q_exp=parameters['q_exp']
+
     T_in_fm=T_in_GeV/hbarc
     
     # 14th moments RTA - in MUSIC
-    return 1/(15.*np.power(1/3-cs2_qcd_fct(T_in_fm),2))*zeta_over_s(T_in_GeV, parameters)/T_in_fm
+    return c_Pi*np.power(0.18743,q_exp)/(np.power(1/3-cs2_qcd_fct(T_in_fm),q_exp))*zeta_over_s(T_in_GeV, parameters)/T_in_fm
 
 
 def shear_relaxation_time(T_in_GeV, parameters):
 
+    b_pi=parameters['b_pi']
+
     T_in_fm=T_in_GeV/hbarc
     
     # 14th moments RTA - in MUSIC
-    return 5*eta_over_s(T_in_GeV,parameters)/T_in_fm
+    return b_pi*eta_over_s(T_in_GeV,parameters)/T_in_fm
 
 
 def bulk_relaxation_time_approx_causality_bound_in_fm(T_in_GeV, zeta_over_s_fct, cs2_fct):
@@ -285,8 +293,10 @@ for transport_coeff, pos, axis_label in transport_coeff_list:
         else:
             y_high_lim=0.15
     else:
-        y_low_lim=0
-        y_high_lim=5
+        # Relaxation times
+        y_low_lim=1e-2
+        y_high_lim=1e2
+        tmp_ax.set_yscale("log")
 
     tmp_ax.set_ylim(y_low_lim,y_high_lim)
 
