@@ -111,7 +111,7 @@ if (version == "sims1"):
     bulk_param_list={
     "T_peak_in_GeV":[0.13,.3],
     "zeta_over_s_at_peak":[1e-5,0.3],
-    "zeta_area_root":[(1e-5)**.25,.5**.25],
+    "zeta_over_s_width_in_GeV":[0.01,0.15],
     "lambda":[-.8,0.8],
     "c_Pi":[1.25,10.0],
     "q_exp":[0,2],
@@ -128,9 +128,8 @@ if (version == "sims1"):
 
         T_peak_in_GeV=parameters['T_peak_in_GeV']
         zeta_over_s_at_peak=np.maximum(parameters['zeta_over_s_at_peak'],0.001)
-        zeta_over_s_area=(parameters['zeta_area_root'])**4.
+        zeta_over_s_width=parameters['zeta_over_s_width_in_GeV']
         lambda_param=parameters['lambda']
-        zeta_over_s_width=1./3.141592*(zeta_over_s_area/zeta_over_s_at_peak)
 
         res=zeta_over_s_at_peak/(1+np.power((T_in_GeV - T_peak_in_GeV)/zeta_over_s_width/(lambda_param*np.sign(T_in_GeV-T_peak_in_GeV)+1),2))
 
