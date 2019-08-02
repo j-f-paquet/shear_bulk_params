@@ -114,7 +114,7 @@ if (version == "sims1"):
     "zeta_area_root":[(1e-5)**.25,.5**.25],
     "lambda":[-.8,0.8],
     "c_Pi":[1.25,10.0],
-    "q_exp":[1,2],
+    "q_exp":[0,2],
     }
 
     #\frac{\zeta}{s}(T)=\frac{1}{\pi\sigma_\zeta}\frac{A_{\zeta}}{1+\left(T-T_{\zeta,c}\right)^2\left[\sigma^2_{\zeta}\left(\lambda sign(T-T_{\zeta,c})+1\right)\right]^{-1}}
