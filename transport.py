@@ -86,10 +86,10 @@ if (version == "sims1"):
 
     shear_param_list={
     "T_kink_in_GeV":[.13,.3],
-    "eta_over_s_at_kink":[.001,.3],
-    "low_T_slope_in_GeV":[-3,1],
+    "eta_over_s_at_kink":[.01,.2],
+    "low_T_slope_in_GeV":[-2,1],
     "high_T_slope_in_GeV":[-1,2],
-    "b_pi":[2,20],
+    "b_pi":[2,8],
     }
 
     def eta_over_s( T_in_GeV, parameters):
@@ -109,12 +109,12 @@ if (version == "sims1"):
         return res
 
     bulk_param_list={
-    "T_peak_in_GeV":[0.13,.3],
-    "zeta_over_s_at_peak":[1e-5,0.3],
-    "zeta_over_s_width_in_GeV":[0.01,0.15],
-    "lambda":[-.8,0.8],
-    "c_Pi":[2.,10.0],
-    "q_exp":[0,2],
+    "T_peak_in_GeV":[0.12,.3],
+    "zeta_over_s_at_peak":[1e-2,0.3],
+    "zeta_over_s_width_in_GeV":[0.025,0.15],
+    "lambda":[-0.8,0.8],
+    #"c_Pi":[2.,10.0],
+    #"q_exp":[0,2],
     }
 
     #\frac{\zeta}{s}(T)=\frac{1}{\pi\sigma_\zeta}\frac{A_{\zeta}}{1+\left(T-T_{\zeta,c}\right)^2\left[\sigma^2_{\zeta}\left(\lambda sign(T-T_{\zeta,c})+1\right)\right]^{-1}}
@@ -142,13 +142,21 @@ if (version == "sims1"):
 
 def bulk_relaxation_time(T_in_GeV, parameters):
 
-    c_Pi=parameters['c_Pi']
-    q_exp=parameters['q_exp']
+    #c_Pi=parameters['c_Pi']
+    #q_exp=parameters['q_exp']
 
     T_in_fm=T_in_GeV/hbarc
     
     # 14th moments RTA - in MUSIC
-    return c_Pi*np.power(0.18743,q_exp)/(np.power(1/3-cs2_qcd_fct(T_in_fm),q_exp))*zeta_over_s(T_in_GeV, parameters)/T_in_fm
+    #return c_Pi*np.power(0.18743,q_exp)/(np.power(1/3-cs2_qcd_fct(T_in_fm),q_exp))*zeta_over_s(T_in_GeV, parameters)/T_in_fm
+    #return c_Pi*np.power(0.18743,q_exp)/(np.power(1/3-cs2_qcd_fct(T_in_fm),q_exp))*zeta_over_s(T_in_GeV, parameters)/T_in_fm
+
+
+    csfactor = 1./3. - cs2_qcd_fct(T_in_fm)
+    relax_time_factor=1./14.55
+
+    return relax_time_factor/(csfactor*csfactor)*zeta_over_s(T_in_GeV, parameters)/T_in_fm 
+
 
 
 def shear_relaxation_time(T_in_GeV, parameters):
@@ -293,9 +301,12 @@ for transport_coeff, pos, axis_label in transport_coeff_list:
             y_high_lim=0.15
     else:
         # Relaxation times
-        y_low_lim=1e-2
-        y_high_lim=1e2
-        tmp_ax.set_yscale("log")
+        #y_low_lim=1e-2
+        #y_high_lim=1e2
+        #tmp_ax.set_yscale("log")
+        y_low_lim=0.
+        y_high_lim=2
+        #tmp_ax.set_yscale("log")
 
     tmp_ax.set_ylim(y_low_lim,y_high_lim)
 
